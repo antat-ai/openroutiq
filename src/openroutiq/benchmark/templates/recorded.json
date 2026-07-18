@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "name": "Synthetic routing example (not a real benchmark)",
+  "description": "A tiny deterministic fixture that demonstrates the schema. Do not publish its scores as model results.",
+  "source": "synthetic",
+  "metadata": {
+    "synthetic": true
+  },
+  "cases": [
+    {
+      "id": "coding-1",
+      "request": "Repair the race condition in this Python worker",
+      "task": "coding",
+      "input_tokens": 1000,
+      "expected_output_tokens": 500,
+      "evaluation": {
+        "type": "recorded"
+      },
+      "metadata": {
+        "agent_role": "coding-agent",
+        "workflow_step": "implement"
+      },
+      "candidates": [
+        {
+          "id": "example/fast",
+          "provider": "example",
+          "model": "fast-model",
+          "reasoning_level": "none",
+          "accuracy": 0.55,
+          "cost": 0.00045
+        },
+        {
+          "id": "example/balanced",
+          "provider": "example",
+          "model": "balanced-model",
+          "reasoning_level": "none",
+          "accuracy": 0.82,
+          "cost": 0.0036
+        },
+        {
+          "id": "example/deep:high",
+          "provider": "example",
+          "model": "deep-model",
+          "reasoning_level": "high",
+          "accuracy": 0.95,
+          "cost": 0.024
+        }
+      ]
+    },
+    {
+      "id": "writing-1",
+      "request": "Polish this short product announcement",
+      "task": "writing",
+      "input_tokens": 500,
+      "expected_output_tokens": 250,
+      "evaluation": {
+        "type": "recorded"
+      },
+      "metadata": {
+        "agent_role": "writer",
+        "workflow_step": "draft"
+      },
+      "candidates": [
+        {
+          "id": "example/fast",
+          "provider": "example",
+          "model": "fast-model",
+          "reasoning_level": "none",
+          "accuracy": 0.86,
+          "cost": 0.000225
+        },
+        {
+          "id": "example/balanced",
+          "provider": "example",
+          "model": "balanced-model",
+          "reasoning_level": "none",
+          "accuracy": 0.89,
+          "cost": 0.0018
+        },
+        {
+          "id": "example/deep:high",
+          "provider": "example",
+          "model": "deep-model",
+          "reasoning_level": "high",
+          "accuracy": 0.9,
+          "cost": 0.012
+        }
+      ]
+    },
+    {
+      "id": "reasoning-1",
+      "request": "Solve a difficult constraint-satisfaction proof",
+      "task": "reasoning",
+      "input_tokens": 1200,
+      "expected_output_tokens": 800,
+      "evaluation": {
+        "type": "recorded"
+      },
+      "metadata": {
+        "agent_role": "planner",
+        "workflow_step": "reason"
+      },
+      "candidates": [
+        {
+          "id": "example/fast",
+          "provider": "example",
+          "model": "fast-model",
+          "reasoning_level": "none",
+          "accuracy": 0.2,
+          "cost": 0.00066
+        },
+        {
+          "id": "example/balanced",
+          "provider": "example",
+          "model": "balanced-model",
+          "reasoning_level": "none",
+          "accuracy": 0.64,
+          "cost": 0.00528
+        },
+        {
+          "id": "example/deep:high",
+          "provider": "example",
+          "model": "deep-model",
+          "reasoning_level": "high",
+          "accuracy": 0.93,
+          "cost": 0.0352
+        }
+      ]
+    }
+  ]
+}

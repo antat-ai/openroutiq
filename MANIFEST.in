@@ -1,0 +1,33 @@
+include CHANGELOG.md
+include CITATION.cff
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include .env.example
+include GOVERNANCE.md
+include LICENSE
+include README.md
+include SECURITY.md
+exclude THIRD_PARTY_DATA.md
+include models.example.json
+include models.providers.example.json
+recursive-include assets *.png
+prune benchmarks
+recursive-include constraints *.txt
+prune docs
+recursive-include examples *.py
+recursive-include src/openroutiq/benchmark/templates *.json
+recursive-include scripts *.py
+exclude scripts/check_benchmark_evidence.py
+recursive-include tests *.py
+exclude tests/test_benchmark*.py
+exclude tests/test_portable_report.py
+exclude tests/test_risk_replay.py
+exclude tests/test_selection_comparator_protocol.py
+exclude tests/test_selection_eval.py
+exclude tests/test_selection_evidence_publication.py
+exclude tests/test_selection_live_ledger_audit.py
+exclude tests/test_selection_manifest.py
+exclude tests/test_selection_plots.py
+exclude tests/test_selection_report*.py
+exclude tests/test_xroutebench.py
+global-exclude __pycache__ *.py[cod]

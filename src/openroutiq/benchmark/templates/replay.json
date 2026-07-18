@@ -1,0 +1,34 @@
+{
+  "dataset": "recorded.json",
+  "output": "results",
+  "repetitions": 1,
+  "cost_budget_per_request": 0.01,
+  "accuracy_target": 0.8,
+  "routers": [
+    {
+      "type": "openroutiq",
+      "name": "OpenRoutiQ auto",
+      "catalog": "catalog.json",
+      "strategy": "auto"
+    },
+    {
+      "type": "openroutiq",
+      "name": "OpenRoutiQ cost",
+      "catalog": "catalog.json",
+      "strategy": "cost"
+    },
+    {
+      "type": "best_single",
+      "name": "Best single"
+    },
+    {
+      "type": "random",
+      "name": "Random",
+      "seed": 3407
+    },
+    {
+      "type": "oracle",
+      "name": "Oracle"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+name: Benchmark result or methodology
+description: Propose a dataset, adapter, method, or reproducible result
+title: "[Benchmark]: "
+labels: [benchmark]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Decision and primary metric
+      description: State the accuracy definition, cost definition, and intended decision.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Dataset source, license, and split
+    validations:
+      required: true
+  - type: textarea
+    id: pool
+    attributes:
+      label: Candidate variants
+      description: List model, provider/deployment, reasoning level, price timestamp, and aliases.
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Reproduction artifacts
+      description: Link config, raw observations, report, code commit, and environment details.
+    validations:
+      required: true

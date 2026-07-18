@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use OpenRoutiQ in research, please cite the software release."
+title: "OpenRoutiQ"
+type: software
+authors:
+  - name: "OpenRoutiQ contributors"
+repository-code: "https://github.com/antat-ai/OpenRoutiQ"
+url: "https://github.com/antat-ai/OpenRoutiQ"
+license: MIT
+version: 0.1.0
+date-released: 2026-08-29

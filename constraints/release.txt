@@ -1,0 +1,16 @@
+# Direct dependencies resolved and audited for the OpenRoutiQ 0.1 release candidate.
+# CI is configured to test this file on Python 3.11-3.13 and every supported OS.
+anthropic==1.1.0
+build==1.5.0
+fastapi==0.141.1
+litellm==1.98.0
+matplotlib==3.11.1
+mypy==2.3.1
+openai==2.54.0
+pip==26.2.1
+pip-audit==2.10.1
+pytest==9.1.1
+ruff==0.16.4
+setuptools==83.0.0
+twine==7.0.0
+uvicorn==0.52.4
