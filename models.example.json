@@ -1,0 +1,120 @@
+{
+  "note": "Illustrative profiles and task examples only. Replace scores, prices, and examples with reviewed data from your workload.",
+  "task_examples": {
+    "general": [
+      "Hello there",
+      "Answer this question clearly",
+      "Help me understand this topic",
+      "Summarize our conversation",
+      "Explain this in simple terms"
+    ],
+    "coding": [
+      "Repair the race condition in this worker",
+      "Implement the missing cache eviction behavior",
+      "Review this Python service and add tests",
+      "Find the defect in this SQL query"
+    ],
+    "reasoning": [
+      "Solve this proof step by step",
+      "Compare the tradeoffs under these constraints",
+      "Work through this logic puzzle",
+      "Plan a multi-stage migration"
+    ],
+    "writing": [
+      "Polish this customer announcement",
+      "Rewrite this paragraph for clarity",
+      "Draft an article for our audience",
+      "Edit this product copy"
+    ],
+    "research": [
+      "Investigate the evidence and cite reliable sources",
+      "Find recent papers about this subject",
+      "Compare the available sources",
+      "Produce a sourced literature review"
+    ],
+    "extraction": [
+      "Pull the named fields into structured data",
+      "Convert this document into a table",
+      "Parse these records into JSON",
+      "Identify every date and amount"
+    ],
+    "vision": [
+      "Inspect the attached screenshot",
+      "Describe what appears in this photograph",
+      "Read this architecture diagram",
+      "Compare the two images"
+    ],
+    "tool_use": [
+      "Look up the order using the available function",
+      "Call the service and return its result",
+      "Schedule the deployment with the provided action",
+      "Use the available tools to complete the request"
+    ]
+  },
+  "models": [
+    {
+      "id": "example/fast",
+      "provider": "example",
+      "model": "fast-model",
+      "quality": {
+        "general": 72,
+        "coding": 68,
+        "writing": 74,
+        "extraction": 79,
+        "tool_use": 73
+      },
+      "latency_ms": 350,
+      "input_price_per_million": 0.15,
+      "output_price_per_million": 0.6,
+      "max_context_tokens": 64000,
+      "capabilities": ["text", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format"],
+      "confidence": 70
+    },
+    {
+      "id": "example/balanced",
+      "provider": "example",
+      "model": "balanced-model",
+      "quality": {
+        "general": 84,
+        "coding": 86,
+        "reasoning": 82,
+        "writing": 85,
+        "research": 81,
+        "extraction": 88,
+        "vision": 80,
+        "tool_use": 85
+      },
+      "latency_ms": 1100,
+      "input_price_per_million": 1.2,
+      "output_price_per_million": 4.8,
+      "max_context_tokens": 128000,
+      "capabilities": ["text", "vision", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format"],
+      "confidence": 80
+    },
+    {
+      "id": "example/deep:high",
+      "provider": "example",
+      "model": "deep-model",
+      "reasoning_level": "high",
+      "quality": {
+        "general": 91,
+        "coding": 94,
+        "reasoning": 97,
+        "writing": 89,
+        "research": 93,
+        "extraction": 90,
+        "vision": 88,
+        "tool_use": 92
+      },
+      "latency_ms": 4200,
+      "input_price_per_million": 8,
+      "output_price_per_million": 32,
+      "max_context_tokens": 256000,
+      "capabilities": ["text", "vision", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format", "reasoning_effort"],
+      "confidence": 82
+    }
+  ]
+}

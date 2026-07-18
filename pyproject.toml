@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools==83.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openroutiq"
+version = "0.1.0"
+description = "Explainable quality, latency, and cost routing for AI models"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "OpenRoutiQ contributors" }]
+keywords = ["ai", "llm", "model-routing", "agents", "inference", "openai"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/antat-ai/openroutiq"
+Repository = "https://github.com/antat-ai/openroutiq"
+Issues = "https://github.com/antat-ai/openroutiq/issues"
+Documentation = "https://github.com/antat-ai/openroutiq#readme"
+
+[project.optional-dependencies]
+openai = ["openai>=1"]
+anthropic = ["anthropic>=0.40"]
+litellm = ["litellm>=1.60"]
+providers = ["openai>=1", "anthropic>=0.40", "litellm>=1.60"]
+embeddings = ["sentence-transformers>=3"]
+proxy = ["fastapi>=0.115", "uvicorn>=0.30", "litellm>=1.60"]
+benchmark-notdiamond = ["notdiamond"]
+benchmark-routellm = ["routellm[serve,eval]"]
+benchmark-xroutebench = ["datasets>=4,<5", "matplotlib>=3.9,<4"]
+dev = [
+  "build>=1.2",
+  "matplotlib>=3.9,<4",
+  "mypy>=1.15",
+  "pip-audit>=2.8",
+  "pytest>=8",
+  "ruff>=0.9",
+  "twine>=5",
+]
+
+[project.scripts]
+openroutiq = "openroutiq.cli:main"
+openroutiq-benchmark = "openroutiq.benchmark.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["openroutiq*"]
+
+[tool.setuptools.package-data]
+openroutiq = ["py.typed", "benchmark/templates/*.json"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+include = ["*.py", "*.pyi", "*.ipynb"]
+
+[tool.ruff.lint]
+# Keep CI stable across Ruff releases; opt into additional families deliberately.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/openroutiq"]
+no_site_packages = true
+check_untyped_defs = true
+ignore_missing_imports = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true

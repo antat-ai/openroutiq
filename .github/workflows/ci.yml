@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade "pip==26.2.1"
+      - run: python -m pip install -c constraints/release.txt -e ".[dev,proxy]"
+      - run: python -m pytest -q
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade "pip==26.2.1"
+      - run: python -m pip install -c constraints/release.txt -e ".[dev,providers,proxy]"
+      - run: python -m ruff check .
+      - run: python -m ruff format --check .
+      - run: python -m mypy
+      - run: python -m pip_audit
+      - run: python scripts/check_release.py
+      - run: python scripts/check_namespace_cutover.py
+      - run: python scripts/check_docs.py
+
+  package:
+    needs: [test, quality]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade "pip==26.2.1"
+      - run: python -m pip install -c constraints/release.txt build twine
+      - run: python scripts/check_release.py
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - run: python scripts/check_distribution.py
+      - run: python -m pip install --force-reinstall dist/*.whl
+      - run: python -c "import openroutiq; print(openroutiq.__version__)"
+      - run: openroutiq --help
+      - run: openroutiq-benchmark --help
+      - run: openroutiq-benchmark init "${{ runner.temp }}/openroutiq-benchmark-example"
+      - run: openroutiq-benchmark validate "${{ runner.temp }}/openroutiq-benchmark-example/replay.json"
+      - run: openroutiq-benchmark estimate "${{ runner.temp }}/openroutiq-benchmark-example/replay.json"
+      - run: openroutiq-benchmark run "${{ runner.temp }}/openroutiq-benchmark-example/replay.json" --confirm-benchmark
+      - run: openroutiq init --provider openrouter --catalog "${{ runner.temp }}/openroutiq-smoke-models.json"
+      - run: openroutiq route --catalog "${{ runner.temp }}/openroutiq-smoke-models.json" --strategy balanced "Write a Python function that safely parses JSON."
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python-package
+          path: dist/
+          if-no-files-found: error

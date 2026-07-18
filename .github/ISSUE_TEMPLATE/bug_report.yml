@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible OpenRoutiQ defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, private prompts, model outputs, or customer data.
+  - type: input
+    id: version
+    attributes:
+      label: OpenRoutiQ version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Python SDK
+        - CLI
+        - Proxy
+        - Adaptive registry
+        - Benchmark tooling
+        - Packaging or documentation
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include sanitized code, catalog data, and the exact command when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Python version, OS, optional extras, provider/client versions, and deployment shape.
+    validations:
+      required: true

@@ -1,0 +1,71 @@
+{
+  "note": "Synthetic benchmark catalog. Replace every score and price with training-only evidence from your workload.",
+  "task_examples": {
+    "coding": [
+      "Repair the race condition in this Python worker",
+      "Implement and test a concurrency-safe queue"
+    ],
+    "writing": [
+      "Polish this short product announcement",
+      "Rewrite this paragraph for clarity"
+    ],
+    "reasoning": [
+      "Solve a difficult constraint-satisfaction proof",
+      "Compare the tradeoffs under these constraints"
+    ]
+  },
+  "models": [
+    {
+      "id": "example/fast",
+      "provider": "example",
+      "model": "fast-model",
+      "quality": {
+        "coding": 68,
+        "writing": 74,
+        "reasoning": 62
+      },
+      "latency_ms": 350,
+      "input_price_per_million": 0.15,
+      "output_price_per_million": 0.6,
+      "max_context_tokens": 64000,
+      "capabilities": ["text", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format"],
+      "confidence": 70
+    },
+    {
+      "id": "example/balanced",
+      "provider": "example",
+      "model": "balanced-model",
+      "quality": {
+        "coding": 86,
+        "writing": 85,
+        "reasoning": 82
+      },
+      "latency_ms": 1100,
+      "input_price_per_million": 1.2,
+      "output_price_per_million": 4.8,
+      "max_context_tokens": 128000,
+      "capabilities": ["text", "vision", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format"],
+      "confidence": 80
+    },
+    {
+      "id": "example/deep:high",
+      "provider": "example",
+      "model": "deep-model",
+      "reasoning_level": "high",
+      "quality": {
+        "coding": 94,
+        "writing": 89,
+        "reasoning": 97
+      },
+      "latency_ms": 4200,
+      "input_price_per_million": 8,
+      "output_price_per_million": 32,
+      "max_context_tokens": 256000,
+      "capabilities": ["text", "vision", "json", "tools"],
+      "supported_parameters": ["tools", "tool_choice", "response_format", "reasoning_effort"],
+      "confidence": 82
+    }
+  ]
+}
