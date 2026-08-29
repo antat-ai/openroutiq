@@ -1039,13 +1039,13 @@ $$
 \text{Possible static routing policies}=V^T}.
 $$
 
-OpenRoutiQ goes beyond a task-type lookup: it uses the whole request $x$. For policy $\pi$, it
-first constructs the eligible set
+OpenRoutiQ goes beyond a task-type lookup by evaluating the complete request. Given request
+$x$ and routing policy $\pi$, it first constructs the eligible set:
 
 $$
 \mathcal V_{\pi}(x) = \left\{v\in\mathcal V \;\middle|\;
-\operatorname{capable}(v,x) \land \operatorname{approved}(v) \land
-\operatorname{allowed}_{\pi}(v,x)\right\},
+\mathrm{capable}(v,x) \land \mathrm{approved}(v) \land
+\mathrm{allowed}_{\pi}(v,x)\right\},
 $$
 
 then chooses the eligible variant with the highest predicted policy-adjusted utility:
