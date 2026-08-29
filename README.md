@@ -1043,23 +1043,22 @@ OpenRoutiQ goes beyond a task-type lookup by evaluating the complete request. Gi
 $x$ and routing policy $\pi$, it first constructs the eligible set:
 
 $$
-\mathcal V_{\pi}(x) = \left\{v\in\mathcal V \;\middle|\;
-\mathrm{capable}(v,x) \land \mathrm{approved}(v) \land
-\mathrm{allowed}_{\pi}(v,x)\right\},
+\mathcal V_{\pi}(x) = \mathcal C(x) \cap \mathcal A \cap \mathcal P_{\pi}(x).
 $$
 
-then chooses the eligible variant with the highest predicted policy-adjusted utility:
+Here, $\mathcal C(x)$ contains request-capable variants, $\mathcal A$ contains operator-approved
+variants, and $\mathcal P_{\pi}(x)$ contains variants allowed by the active policy. OpenRoutiQ then
+chooses the eligible variant with the highest predicted policy-adjusted utility:
 
 $$
-\boxed{v^*(x) = \underset{v\in\mathcal V_{\pi}(x)}{\arg\max}\;
+\boxed{v^*(x) = \underset{v\in\mathcal V_{\pi}(x)}{\arg\max}
 \widehat U(x,v)}.
 $$
 
 One useful decomposition is
 
 $$
-\widehat U(x,v) = w_q\widehat Q(x,v) - w_c\widehat C(x,v)
-- w_l\widehat L(x,v) - w_r\widehat R(x,v),
+\widehat U(x,v) = w_q\widehat Q(x,v) - w_c\widehat C(x,v) - w_l\widehat L(x,v) - w_r\widehat R(x,v),
 $$
 
 where $\widehat Q$ predicts quality or success, $\widehat C$ cost, $\widehat L$ latency, and
