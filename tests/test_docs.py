@@ -74,6 +74,7 @@ class DocumentationTest(unittest.TestCase):
             "Stop hardcoding models. Route every request to the one that should win.", readme
         )
         self.assertIn("OpenRoutiQ is an explainable, self-learning router", readme)
+        self.assertIn("https://deepwiki.com/antat-ai/openroutiq", readme)
         self.assertIn("OpenRoutiQ base reached **60.43% accuracy**", readme)
         self.assertIn("Route. Evaluate. Learn. Promote.", readme)
         self.assertIn("**Beta notice:** OpenRoutiQ is an early public release.", readme)

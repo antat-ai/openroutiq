@@ -2,6 +2,8 @@
 
 # OpenRoutiQ
 
+[Explore OpenRoutiQ's architecture and documentation on DeepWiki →](https://deepwiki.com/antat-ai/openroutiq)
+
 ## Stop hardcoding models. Route every request to the one that should win.
 
 **OpenRoutiQ is an explainable, self-learning router for AI models.** It chooses the model,
