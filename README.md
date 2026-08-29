@@ -15,6 +15,12 @@ latency, failures, and drift you actually observe.
 > at **65.1% lower measured cost**, and exceeded xRouteBench's best published macro by
 > **2.63 percentage points**. [See the methods, scope, and plots.](#benchmark-results)
 
+> [!IMPORTANT]
+> **Beta notice:** OpenRoutiQ is an early public release. We are opening it now to learn from
+> real-world workloads; APIs and configuration formats may evolve before 1.0. Validate model
+> catalogs, routing policies, and learned promotions against your own workload before production
+> use, especially for high-risk applications.
+
 **Route. Evaluate. Learn. Promote.** Start from catalog examples, record only outcomes you trust,
 and let each model, provider, and reasoning-level variant build its own evidence. Automatic
 promotion stays off until you validate it; policies, constraints, and explicit pins remain under

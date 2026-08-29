@@ -76,6 +76,8 @@ class DocumentationTest(unittest.TestCase):
         self.assertIn("OpenRoutiQ is an explainable, self-learning router", readme)
         self.assertIn("OpenRoutiQ base reached **60.43% accuracy**", readme)
         self.assertIn("Route. Evaluate. Learn. Promote.", readme)
+        self.assertIn("**Beta notice:** OpenRoutiQ is an early public release.", readme)
+        self.assertIn("APIs and configuration formats may evolve before 1.0", readme)
         self.assertIn("## Privacy-safe observability exports", readme)
         self.assertIn("### Generic OpenTelemetry / OTLP", readme)
         self.assertIn("### LangSmith", readme)
@@ -84,7 +86,7 @@ class DocumentationTest(unittest.TestCase):
         self.assertNotIn("coming in the next release", readme.casefold())
         self.assertNotIn("Current status:", readme)
         self.assertNotIn("remains alpha", readme.casefold())
-        self.assertIn("Development Status :: 5 - Production/Stable", project)
+        self.assertIn("Development Status :: 4 - Beta", project)
 
         self.assertIn("## Why routing complexity explodes in today's AI ecosystem", readme)
         self.assertIn(r"\log(n)", readme)

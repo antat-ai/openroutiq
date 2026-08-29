@@ -12,7 +12,7 @@ license = "MIT"
 authors = [{ name = "OpenRoutiQ contributors" }]
 keywords = ["ai", "llm", "model-routing", "agents", "inference", "openai"]
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
