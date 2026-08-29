@@ -67,7 +67,7 @@
       "input_price_per_million": 0.15,
       "output_price_per_million": 0.6,
       "max_context_tokens": 64000,
-      "capabilities": ["text", "json", "tools"],
+      "capabilities": ["text", "json", "json_schema", "tools"],
       "supported_parameters": ["tools", "tool_choice", "response_format"],
       "confidence": 70
     },
@@ -89,7 +89,7 @@
       "input_price_per_million": 1.2,
       "output_price_per_million": 4.8,
       "max_context_tokens": 128000,
-      "capabilities": ["text", "vision", "json", "tools"],
+      "capabilities": ["text", "vision", "json", "json_schema", "tools"],
       "supported_parameters": ["tools", "tool_choice", "response_format"],
       "confidence": 80
     },
@@ -112,7 +112,7 @@
       "input_price_per_million": 8,
       "output_price_per_million": 32,
       "max_context_tokens": 256000,
-      "capabilities": ["text", "vision", "json", "tools"],
+      "capabilities": ["text", "vision", "json", "json_schema", "tools"],
       "supported_parameters": ["tools", "tool_choice", "response_format", "reasoning_effort"],
       "confidence": 82
     }

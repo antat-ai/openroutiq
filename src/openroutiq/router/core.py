@@ -11,11 +11,15 @@ from contextlib import closing
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from threading import Lock
-from typing import Any, Callable, Iterable, Mapping
+from time import perf_counter
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Mapping
 from urllib.parse import parse_qsl, urlsplit
 
 from openroutiq.router.capabilities import CapabilityGate, CapabilityRequirements
 from openroutiq.router.failures import FailureType
+
+if TYPE_CHECKING:
+    from openroutiq.observability.dispatcher import Observability
 
 TASKS = frozenset(
     {
@@ -1422,6 +1426,7 @@ class Router:
         token_counter: Callable[[Any, Sequence[Any] | None], int] | None = None,
         cost_estimator: Callable[[ModelProfile, int, int], float] | None = None,
         capability_gate: CapabilityGate | None = None,
+        observability: Observability | None = None,
     ) -> None:
         parsed = tuple(
             item if isinstance(item, ModelProfile) else ModelProfile.from_mapping(item)
@@ -1507,6 +1512,12 @@ class Router:
         if capability_gate is not None and not isinstance(capability_gate, CapabilityGate):
             raise OpenRoutiQError("capability_gate must be a CapabilityGate or None")
         self.capability_gate = capability_gate or CapabilityGate()
+        if observability is not None:
+            from openroutiq.observability.dispatcher import Observability
+
+            if not isinstance(observability, Observability):
+                raise OpenRoutiQError("observability must be an Observability object or None")
+        self.observability = observability
 
     @classmethod
     def from_file(cls, path: str | Path, **options: Any) -> Router:
@@ -1581,6 +1592,7 @@ class Router:
         model_id: str,
         quality_score: float,
         *,
+        task: str | None = None,
         latency_ms: float | None = None,
         actual_cost_usd: float | None = None,
         success: bool | None = None,
@@ -1595,6 +1607,8 @@ class Router:
     ) -> int:
         if model_id not in self._profiles_by_id:
             raise OpenRoutiQError(f"unknown model id: {model_id}")
+        if task is not None and (not isinstance(task, str) or not task.strip()):
+            raise OpenRoutiQError("task must be non-empty text or None")
         if self.outcome_store is None:
             raise OpenRoutiQError("record_evaluation requires an embedder and outcome_store")
         score = _request_number(quality_score, "quality_score", minimum=0, maximum=100)
@@ -1631,6 +1645,22 @@ class Router:
         )
         if latency is not None:
             self.record_latency(model_id, latency)
+        if self.observability is not None:
+            try:
+                self.observability.record_evaluation(
+                    model_id=model_id,
+                    provider=self._profiles_by_id[model_id].provider,
+                    task=task.strip() if task is not None else None,
+                    quality_score=score,
+                    latency_ms=latency,
+                    actual_cost_usd=actual_cost_usd,
+                    success=success,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
+            except Exception:
+                # Export must never change a persisted evaluation or learning result.
+                pass
         return row_id
 
     def route(
@@ -1658,6 +1688,7 @@ class Router:
         reasoning_effort: str | None = None,
         pinned_model: str | None = None,
     ) -> RouteDecision:
+        observability_started = perf_counter() if self.observability is not None else None
         context = prompt if isinstance(prompt, RouteContext) else RouteContext(prompt)
         if pinned_model is None:
             pinned_model = context.pinned_model
@@ -2214,7 +2245,7 @@ class Router:
                 f"predicted cost {winner.predicted_cost:.8f} exceeds soft budget {review_budget:.8f}"
             )
 
-        return RouteDecision(
+        decision = RouteDecision(
             selected=winner,
             task=selected_task,
             strategy=decision_strategy,
@@ -2230,6 +2261,18 @@ class Router:
             context_similarity=context_similarity,
             risk_policy=effective_risk_policy,
         )
+        if self.observability is not None:
+            try:
+                duration_ms = (
+                    None
+                    if observability_started is None
+                    else (perf_counter() - observability_started) * 1_000
+                )
+                self.observability.record_route(decision, duration_ms=duration_ms)
+            except Exception:
+                # Selection is final before export and must be returned unchanged.
+                pass
+        return decision
 
 
 def _minimum_limit(left: float | None, right: float | None) -> float | None:

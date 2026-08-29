@@ -52,8 +52,8 @@ class ReleaseContractTest(unittest.TestCase):
 
     def test_package_structure_uses_domain_packages_and_absolute_imports(self):
         result = validate_package_structure(ROOT / "src" / "openroutiq")
-        self.assertEqual(7, result["domain_packages"])
-        self.assertGreater(result["modules"], 7)
+        self.assertEqual(8, result["domain_packages"])
+        self.assertGreater(result["modules"], 8)
 
     def test_package_structure_rejects_relative_imports(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -61,6 +61,7 @@ class ReleaseContractTest(unittest.TestCase):
             for name in (
                 "adaptive",
                 "benchmark",
+                "observability",
                 "providers",
                 "proxy",
                 "quickstart",

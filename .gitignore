@@ -28,6 +28,8 @@ benchmarks/
 .benchmark-data/
 docs/
 examples/benchmark/
+# Local GitHub upload assets; keep generated social previews out of the repository.
+assets/social/
 scripts/check_benchmark_evidence.py
 tests/test_benchmark*.py
 tests/test_portable_report.py

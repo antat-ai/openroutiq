@@ -27,6 +27,7 @@ def _wheel(
         for package in (
             "adaptive",
             "benchmark",
+            "observability",
             "providers",
             "proxy",
             "quickstart",
@@ -40,6 +41,14 @@ def _wheel(
         archive.writestr(f"{PROJECT}/benchmark/templates/catalog.json", "{}")
         archive.writestr(f"{PROJECT}/benchmark/templates/recorded.json", "{}")
         archive.writestr(f"{PROJECT}/benchmark/templates/replay.json", "{}")
+        for module in (
+            "dispatcher.py",
+            "events.py",
+            "http_json.py",
+            "otel.py",
+            "vendors.py",
+        ):
+            archive.writestr(f"{PROJECT}/observability/{module}", "")
         archive.writestr(f"{PROJECT}/py.typed", "")
         metadata_lines = ["Metadata-Version: 2.4", f"Name: {PROJECT}", f"Version: {VERSION}"]
         if duplicate_metadata:
@@ -71,6 +80,12 @@ def _sdist(path: Path, *, private_cache: bool = False) -> None:
         f"{root}/src/{PROJECT}/benchmark/templates/catalog.json": "{}",
         f"{root}/src/{PROJECT}/benchmark/templates/recorded.json": "{}",
         f"{root}/src/{PROJECT}/benchmark/templates/replay.json": "{}",
+        f"{root}/examples/domains/customer_support.py": "",
+        f"{root}/examples/domains/financial_document_review.py": "",
+        f"{root}/examples/domains/healthcare_document_assist.py": "",
+        f"{root}/examples/frameworks/langchain_runnable.py": "",
+        f"{root}/examples/frameworks/langgraph_workflow.py": "",
+        f"{root}/examples/observability/exporter_fanout.py": "",
         f"{root}/scripts/check_namespace_cutover.py": "",
         f"{root}/scripts/check_distribution.py": "",
     }

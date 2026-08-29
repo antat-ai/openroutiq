@@ -76,8 +76,12 @@ class DocumentationTest(unittest.TestCase):
         self.assertIn("OpenRoutiQ is an explainable, self-learning router", readme)
         self.assertIn("OpenRoutiQ base reached **60.43% accuracy**", readme)
         self.assertIn("Route. Evaluate. Learn. Promote.", readme)
-        self.assertIn("## Next release: observability exports", readme)
-        self.assertIn("OpenTelemetry/OTLP", readme)
+        self.assertIn("## Privacy-safe observability exports", readme)
+        self.assertIn("### Generic OpenTelemetry / OTLP", readme)
+        self.assertIn("### LangSmith", readme)
+        self.assertIn("### Langtrace", readme)
+        self.assertIn("They never\n  accept prompts, messages, completions", readme)
+        self.assertNotIn("coming in the next release", readme.casefold())
         self.assertNotIn("Current status:", readme)
         self.assertNotIn("remains alpha", readme.casefold())
         self.assertIn("Development Status :: 5 - Production/Stable", project)
@@ -87,7 +91,14 @@ class DocumentationTest(unittest.TestCase):
         self.assertIn(r"\text{Static matrix size}=T\times V", readme)
         self.assertIn(r"\text{Possible static routing policies}=V^T", readme)
         self.assertIn(r"\underset{v\in\mathcal V_{\pi}(x)}{\arg\max}", readme)
-        self.assertLess(readme.index("## Benchmark results"), readme.index("## Why routing"))
+        self.assertLess(
+            readme.index("## Benchmark results"),
+            readme.index("## Privacy-safe observability exports"),
+        )
+        self.assertLess(
+            readme.index("## Privacy-safe observability exports"),
+            readme.index("## Why routing"),
+        )
         self.assertLess(readme.index("## Why routing"), readme.index("## Contributing"))
 
         gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")

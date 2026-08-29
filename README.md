@@ -22,7 +22,8 @@ your control.
 
 The routing core has zero dependencies, makes zero provider calls, and needs no API key. Add
 provider clients or the OpenAI-compatible proxy only when you want OpenRoutiQ to execute the
-selected route.
+selected route. Privacy-bounded OTLP, LangSmith, and Langtrace export is optional and off by
+default.
 
 ## Quick start
 
@@ -297,6 +298,9 @@ agent = create_agent(
 
 See LangChain's official [dynamic model middleware](https://docs.langchain.com/oss/python/langchain/agents#dynamic-model) documentation for provider-specific model setup.
 
+For a complete runnable registry-and-dispatch pattern, see
+[examples/frameworks/langchain_runnable.py](examples/frameworks/langchain_runnable.py).
+
 ## LangGraph
 
 Use OpenRoutiQ inside the model node. It accepts LangChain message objects directly, so the graph keeps its complete conversation context:
@@ -323,6 +327,9 @@ graph.add_edge(START, "model")
 graph.add_edge("model", END)
 app = graph.compile()
 ```
+
+The full [LangGraph workflow example](examples/frameworks/langgraph_workflow.py) adds an explicit
+human-review branch and refuses to dispatch a selected variant without a trusted handler.
 
 ## Providers
 
@@ -426,6 +433,33 @@ result = framework_model.invoke(conversation_messages)
 ```
 
 For non-Python frameworks, use the JSON CLI or the optional proxy; proxy integration is a single OpenAI base-URL change with `model="auto"`.
+
+## Runnable examples
+
+The examples are importable modules with shared lifecycle and privacy configuration. After
+installing OpenRoutiQ, run them from the repository root with `python -m`:
+
+```bash
+python -m examples.quickstart.basic_routing
+python -m examples.domains.customer_support
+python -m examples.domains.financial_document_review
+python -m examples.domains.healthcare_document_assist
+```
+
+| Area | Example | What it demonstrates |
+| --- | --- | --- |
+| Quick start | [basic routing](examples/quickstart/basic_routing.py) | Local selection with no provider call |
+| Adaptive | [private model onboarding](examples/adaptive/private_model_onboarding.py) | Provisional registration, explicit pinning, and verified outcome learning |
+| Customer support | [tool routing](examples/domains/customer_support.py) | Provider allowlist, tool contract, latency target, and cost ceiling |
+| Finance | [document review](examples/domains/financial_document_review.py) | Strict structured output, risk-aware routing, and analyst approval |
+| Healthcare | [document assistance](examples/domains/healthcare_document_assist.py) | High-risk routing with mandatory clinician review and no autonomous care decision |
+| LangChain | [runnable registry](examples/frameworks/langchain_runnable.py) | Dispatch only to an allowlisted model runnable |
+| LangGraph | [review-gated workflow](examples/frameworks/langgraph_workflow.py) | Routing node, trusted handlers, and a human-review branch |
+| Observability | [exporter fan-out](examples/observability/exporter_fanout.py) | Generic OTLP, LangSmith, and Langtrace from one filtered event stream |
+
+The LangChain example needs `langchain-core`; the LangGraph example needs `langgraph`. Their demo
+handlers are offline and make no provider calls. Replace them with provider objects owned by your
+application.
 
 ## OpenAI-compatible proxy
 
@@ -814,6 +848,136 @@ This snapshot covers the seven displayed non-personalized datasets and the decla
 pool. It does not establish universal superiority across unseen datasets, providers, model pools,
 budgets, or live reliability conditions.
 
+## Privacy-safe observability exports
+
+Observability is opt-in. With no `Observability` object attached, OpenRoutiQ starts no telemetry
+worker and makes no observability network calls. Install the OpenTelemetry SDK and OTLP
+HTTP/protobuf exporter when you want generic OTLP or LangSmith export:
+
+```bash
+pip install "openroutiq[observability]"
+```
+
+### Generic OpenTelemetry / OTLP
+
+Send spans to an OpenTelemetry Collector or any OTLP-compatible trace endpoint. The Collector can
+forward them to backends such as Jaeger, Zipkin, or a vendor platform; OpenTelemetry recommends
+the Collector for production. Inject the token and hash key through your process secret manager;
+OpenRoutiQ does not load `.env` files. See the official
+[OpenTelemetry Python exporter guide](https://opentelemetry.io/docs/languages/python/exporters/).
+
+```python
+import os
+
+from openroutiq import Observability, ObservabilityPrivacy, OTLPExporter, Router
+
+exporter = OTLPExporter(
+    endpoint=os.environ["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
+    protocol="http/protobuf",
+    headers={
+        "Authorization": f"Bearer {os.environ['OTEL_EXPORTER_OTLP_TOKEN']}",
+    },
+    service_name="checkout-router",
+)
+privacy = ObservabilityPrivacy(
+    # Use a stable 16+ byte secret only when hashes must correlate across restarts.
+    pseudonymization_key=os.environ["OPENROUTIQ_OBSERVABILITY_HASH_KEY"],
+)
+
+with Observability([exporter], privacy=privacy) as observability:
+    router = Router.from_file("models.json", observability=observability)
+    decision = router.route("Route this request", task="general")
+    if not observability.flush(timeout_seconds=5):
+        raise RuntimeError("telemetry flush timed out")
+```
+
+For OTLP/gRPC, install `openroutiq[observability-grpc]`, set `protocol="grpc"`, and pass the
+collector's gRPC endpoint. If your service already owns an OpenTelemetry SDK pipeline, wrap its
+tracer with `OpenTelemetryExporter(tracer)` instead of creating another provider. The
+dependency-free `OTLPHTTPJSONExporter` is also available for endpoints that explicitly require
+OTLP/HTTP JSON.
+
+### LangSmith
+
+`LangSmithExporter` uses LangSmith's documented OTLP trace endpoint and project header. It emits
+only OpenRoutiQ's filtered spans; it does not enable LangChain or LangGraph auto-instrumentation.
+See LangSmith's [OpenTelemetry tracing guide](https://docs.langchain.com/langsmith/trace-with-opentelemetry).
+
+```python
+import os
+
+from openroutiq import LangSmithExporter, Observability, Router
+
+exporter = LangSmithExporter(
+    os.environ["LANGSMITH_API_KEY"],
+    project_name="routing-production",
+)
+
+with Observability([exporter]) as observability:
+    router = Router.from_file("models.json", observability=observability)
+    decision = router.route("Route this request")
+```
+
+### Langtrace
+
+Langtrace's endpoint expects OTLP/HTTP JSON, so its adapter needs no Langtrace SDK and does not
+turn on prompt/completion instrumentation:
+
+```python
+import os
+
+from openroutiq import LangtraceExporter, Observability, Router
+
+exporter = LangtraceExporter(os.environ["LANGTRACE_API_KEY"])
+
+with Observability([exporter]) as observability:
+    router = Router.from_file("models.json", observability=observability)
+    decision = router.route("Route this request")
+```
+
+Self-hosted endpoints can be supplied with `endpoint=`; follow Langtrace's
+[OTLP configuration guide](https://docs.langtrace.ai/supported-integrations/otel-support/otel-configuration).
+
+### Fan out safely
+
+One bounded dispatcher can export the same filtered event to several destinations:
+
+```python
+observability = Observability(
+    [
+        OTLPExporter(endpoint=collector_endpoint),
+        LangSmithExporter(langsmith_api_key, project_name="routing-production"),
+        LangtraceExporter(langtrace_api_key),
+    ],
+    privacy=ObservabilityPrivacy(pseudonymization_key=stable_hash_key),
+    max_queue_size=2048,
+)
+```
+
+The complete environment-driven version is
+[examples/observability/exporter_fanout.py](examples/observability/exporter_fanout.py).
+
+### Privacy and routing guarantees
+
+- Exported events use a fixed allowlist of routing, execution, and evaluation metrics. They never
+  accept prompts, messages, completions, response bodies, tool arguments, exception messages,
+  credentials, headers, arbitrary metadata, or caller request IDs.
+- Model, provider, and task identifiers are keyed hashes by default. Raw identifiers require the
+  explicit `ObservabilityPrivacy(include_*_identifiers=True)` flags. Without a configured hash
+  key, pseudonyms are process-local and change after restart.
+- Routing completes before an event is queued. Export runs on a dedicated daemon worker; a full
+  bounded queue drops the event instead of delaying selection. Exporter errors cannot change a
+  decision, learning result, provider response, or exception.
+- `observability.stats` exposes only numeric accepted, dropped, rejected, and exporter-failure
+  counts. Exporter exception text is not logged because transport errors can contain secrets.
+- Remote plaintext HTTP endpoints are rejected by default. Use TLS; insecure HTTP requires an
+  explicit opt-in and is intended for controlled local networks.
+- Call `flush()` before short-lived processes exit and `shutdown()` during service termination.
+
+These guarantees cover OpenRoutiQ's exporters. If you separately enable a framework's automatic
+instrumentation, review that framework's settings: it may capture prompts, completions, tools, or
+application state independently of OpenRoutiQ.
+
 ## Why routing complexity explodes in today's AI ecosystem
 
 The size of a routing catalog is multiplicative:
@@ -895,12 +1059,6 @@ $\widehat R$ failure, uncertainty, or drift risk. The operator-controlled weight
 $w_q,w_c,w_l,w_r$ express the active policy. This is the core OpenRoutiQ loop: filter
 incompatible or unapproved variants, predict their outcomes, and choose the best eligible
 expected utility for the request.
-
-## Next release: observability exports
-
-First-class observability export is coming in the next release: OpenTelemetry/OTLP spans plus
-adapters for LangSmith and Langtrace. Export will remain opt-in; OpenRoutiQ will not send prompts,
-routing decisions, or outcome telemetry anywhere by default.
 
 ## Contributing
 

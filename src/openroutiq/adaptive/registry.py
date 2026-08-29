@@ -13,7 +13,8 @@ from decimal import Decimal, InvalidOperation, ROUND_CEILING, ROUND_FLOOR
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import Lock, RLock
-from typing import Any, Protocol, runtime_checkable
+from time import perf_counter
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 from urllib.parse import parse_qsl, urlsplit
 
 from openroutiq.router.failures import FailureType, normalize_failure_type
@@ -28,6 +29,9 @@ from openroutiq.router.core import (
     Router,
     analyze_context,
 )
+
+if TYPE_CHECKING:
+    from openroutiq.observability.dispatcher import Observability
 
 
 OPERATING_STATES = frozenset({"active", "dormant", "quarantined"})
@@ -1651,6 +1655,7 @@ class AdaptiveRouter:
         *,
         registry: str | Path | AdaptiveRegistryBackend,
         policy: AdaptivePolicy | None = None,
+        observability: Observability | None = None,
         **router_options: Any,
     ) -> None:
         if isinstance(registry, AdaptiveRegistryBackend):
@@ -1665,6 +1670,12 @@ class AdaptiveRouter:
             raise OpenRoutiQError(
                 "registry must be a path or an AdaptiveRegistryBackend implementation"
             )
+        if observability is not None:
+            from openroutiq.observability.dispatcher import Observability
+
+            if not isinstance(observability, Observability):
+                raise OpenRoutiQError("observability must be an Observability object or None")
+        self.observability = observability
         for profile in profiles:
             self.registry.encounter(profile, source="catalog", trusted=True)
         self._router_options = dict(router_options)
@@ -1759,6 +1770,7 @@ class AdaptiveRouter:
         explore: bool | None = None,
         **options: Any,
     ) -> RouteDecision:
+        observability_started = perf_counter() if self.observability is not None else None
         if explore is not None and not isinstance(explore, bool):
             raise OpenRoutiQError("explore must be a boolean or None")
         core = self._core()
@@ -1766,11 +1778,14 @@ class AdaptiveRouter:
         task = preliminary.task
         pinned = _pinned_model(request, options)
         if pinned is not None:
-            return _annotate(
-                preliminary,
-                self.registry.status(preliminary.selected.model_id, task=task),
-                exploration=False,
-                selection_probability=1.0,
+            return self._finish_route(
+                _annotate(
+                    preliminary,
+                    self.registry.status(preliminary.selected.model_id, task=task),
+                    exploration=False,
+                    selection_probability=1.0,
+                ),
+                observability_started,
             )
 
         constrained = Constraints.parse(options.get("constraints"))
@@ -1827,13 +1842,16 @@ class AdaptiveRouter:
                 candidate.task,
                 candidate.selected.predicted_cost,
             ):
-                return _annotate(
-                    candidate,
-                    self.registry.status(candidate.selected.model_id, task=task),
-                    exploration=True,
-                    selection_probability=(
-                        1.0 if explore is True else self.policy.exploration_rate
+                return self._finish_route(
+                    _annotate(
+                        candidate,
+                        self.registry.status(candidate.selected.model_id, task=task),
+                        exploration=True,
+                        selection_probability=(
+                            1.0 if explore is True else self.policy.exploration_rate
+                        ),
                     ),
+                    observability_started,
                 )
 
         if baseline is None:
@@ -1843,19 +1861,38 @@ class AdaptiveRouter:
                 f"no trusted adaptive model is eligible for task {task}; explicitly pin a "
                 f"provisional model or enable budgeted exploration.{detail}"
             )
-        return _annotate(
-            baseline,
-            self.registry.status(baseline.selected.model_id, task=task),
-            exploration=False,
-            selection_probability=(
-                1.0 - self.policy.exploration_rate
-                if explore is None
-                and provisional_ids
-                and not preliminary.analysis.high_risk
-                and self.policy.exploration_rate > 0
-                else 1.0
+        return self._finish_route(
+            _annotate(
+                baseline,
+                self.registry.status(baseline.selected.model_id, task=task),
+                exploration=False,
+                selection_probability=(
+                    1.0 - self.policy.exploration_rate
+                    if explore is None
+                    and provisional_ids
+                    and not preliminary.analysis.high_risk
+                    and self.policy.exploration_rate > 0
+                    else 1.0
+                ),
             ),
+            observability_started,
         )
+
+    def _finish_route(
+        self, decision: RouteDecision, observability_started: float | None
+    ) -> RouteDecision:
+        if self.observability is not None:
+            try:
+                duration_ms = (
+                    None
+                    if observability_started is None
+                    else (perf_counter() - observability_started) * 1_000
+                )
+                self.observability.record_route(decision, duration_ms=duration_ms)
+            except Exception:
+                # Adaptive selection is already final and must not depend on export.
+                pass
+        return decision
 
     def observe_execution(
         self,
@@ -1911,6 +1948,7 @@ class AdaptiveRouter:
                 request,
                 model_id,
                 quality_score,
+                task=selected_task,
                 latency_ms=latency_ms,
                 actual_cost_usd=actual_cost_usd,
                 success=success,
@@ -1923,7 +1961,7 @@ class AdaptiveRouter:
                 response_format=response_format,
                 stream=stream,
             )
-        return self.registry.record(
+        status = self.registry.record(
             model_id,
             selected_task,
             quality_score=quality_score,
@@ -1934,3 +1972,25 @@ class AdaptiveRouter:
             success=success,
             failure_type=failure_type,
         )
+        if self.observability is not None:
+            try:
+                provider = next(
+                    (profile.provider for profile in core.profiles if profile.id == model_id),
+                    None,
+                )
+                self.observability.record_evaluation(
+                    model_id=model_id,
+                    provider=provider,
+                    task=selected_task,
+                    quality_score=quality_score,
+                    latency_ms=latency_ms,
+                    actual_cost_usd=actual_cost_usd,
+                    success=success,
+                    failure_type=failure_type,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                )
+            except Exception:
+                # Export must never alter persisted adaptive learning.
+                pass
+        return status

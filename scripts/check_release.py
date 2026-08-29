@@ -70,6 +70,7 @@ _PRIVATE_FILE_PATTERNS = {
 _DOMAIN_PACKAGES = {
     "adaptive",
     "benchmark",
+    "observability",
     "providers",
     "proxy",
     "quickstart",
@@ -202,7 +203,14 @@ def validate(tag: str | None = None) -> dict[str, str]:
     release_series = ".".join(package_version.split(".")[:2])
     if f"OpenRoutiQ {release_series} release" not in constraints:
         raise ValueError("release constraints header does not match the package release series")
-    for required_pin in ("pip==", "setuptools=="):
+    for required_pin in (
+        "opentelemetry-api==",
+        "opentelemetry-exporter-otlp-proto-grpc==",
+        "opentelemetry-exporter-otlp-proto-http==",
+        "opentelemetry-sdk==",
+        "pip==",
+        "setuptools==",
+    ):
         if not any(
             line.strip().startswith(required_pin)
             for line in constraints.splitlines()

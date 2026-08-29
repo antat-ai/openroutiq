@@ -5,6 +5,7 @@ from contextvars import ContextVar
 import inspect
 import json
 import logging
+import math
 import os
 import re
 import secrets
@@ -474,6 +475,7 @@ def _reported_cost(value: Any) -> float | None:
             isinstance(candidate, (int, float))
             and not isinstance(candidate, bool)
             and candidate >= 0
+            and math.isfinite(float(candidate))
         ):
             return float(candidate)
     return None
@@ -506,24 +508,50 @@ def _observe_execution(
     success: bool,
     result: Any = None,
     failure_type: FailureType | None = None,
+    streaming: bool = False,
 ) -> None:
-    if not isinstance(router, AdaptiveRouter):
+    adaptive = isinstance(router, AdaptiveRouter)
+    observability = getattr(router, "observability", None)
+    if not adaptive and observability is None:
         return
+    duration_ms = (time.perf_counter() - started) * 1000
     try:
         input_tokens, output_tokens = _reported_tokens(result)
-        router.observe_execution(
-            decision.selected.model_id,
-            task=decision.task,
-            latency_ms=(time.perf_counter() - started) * 1000,
-            actual_cost_usd=_reported_cost(result),
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            success=success,
-            failure_type=failure_type,
-        )
-    except OpenRoutiQError:
-        # Telemetry must never turn a completed provider request into a proxy failure.
-        return
+        actual_cost_usd = _reported_cost(result)
+    except Exception:
+        # Provider SDK serialization is untrusted telemetry input. Ignore it completely.
+        input_tokens, output_tokens, actual_cost_usd = None, None, None
+    if adaptive:
+        try:
+            assert isinstance(router, AdaptiveRouter)
+            router.observe_execution(
+                decision.selected.model_id,
+                task=decision.task,
+                latency_ms=duration_ms,
+                actual_cost_usd=actual_cost_usd,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                success=success,
+                failure_type=failure_type,
+            )
+        except Exception:
+            # Learning telemetry must never turn a provider result into a proxy failure.
+            pass
+    if observability is not None:
+        try:
+            observability.record_execution(
+                decision,
+                duration_ms=duration_ms,
+                actual_cost_usd=actual_cost_usd,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                success=success,
+                failure_type=failure_type,
+                streaming=streaming,
+            )
+        except Exception:
+            # Export is a best-effort side channel and cannot affect the response.
+            pass
 
 
 async def _invoke(executor: Callable[..., Any], kwargs: Mapping[str, Any]) -> Any:
@@ -869,6 +897,7 @@ def create_app(
                     started=started,
                     success=False,
                     failure_type=failure_type,
+                    streaming=bool(payload.get("stream")),
                 )
             _LOGGER.warning(
                 "%s execution failed",
@@ -922,6 +951,7 @@ def create_app(
                         success=success,
                         result=result if success else None,
                         failure_type=failure_type,
+                        streaming=True,
                     )
                 finally:
                     semaphore.release()
@@ -944,6 +974,7 @@ def create_app(
                 started=started,
                 success=True,
                 result=result,
+                streaming=False,
             )
         finally:
             semaphore.release()
