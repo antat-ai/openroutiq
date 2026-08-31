@@ -501,6 +501,13 @@ its own sync/async invoker; provider execution remains outside the routing decis
 `SelectionIntelligence` layer then predicts evaluated success, quality, cost, and latency for
 each eligible request/model pair. `SelfLearningRouter` updates those local predictors from
 explicit evaluator outcomes; it never treats a completed provider request as correctness.
+When selection exploration is enabled with `explore=True`, `SelectionPolicy.exploration_rate`
+acts as epsilon (`ε`). The selector uses **uncertainty-weighted epsilon-greedy exploration**: with
+probability `1 - ε`, it selects the candidate with the highest predicted utility; with probability
+`ε`, it samples
+eligible candidates with weight `1 / sqrt(1 + calibration_samples)`, favoring models with less
+evaluation evidence. `SelectionChoice.selection_probability` reports the resulting propensity
+for auditable, importance-weighted learning.
 Persisted selection state contains hashed numeric features and aggregates rather than prompts or
 outputs. Calibrate and promote selection policies against held-out workload evidence, retain a
 champion rollback, and keep state isolated wherever tenant telemetry cannot be shared.
@@ -600,7 +607,12 @@ router = AdaptiveRouter.from_file(
 )
 ```
 
-Optional exploration is off by default. When enabled through `AdaptivePolicy`, it has a persistent daily dollar ceiling, a per-request ceiling, and is disabled for high-risk requests. The OpenAI-compatible proxy records latency, reported usage cost, token counts, and execution failures automatically; correctness still comes only from `record_evaluation(...)`, never self-grading.
+`AdaptiveRouter` has a separate, budgeted exploration gate for provisional models. It is off by
+default; when enabled through `AdaptivePolicy`, `exploration_rate` is the probability of attempting
+a provisional route. Exploration has a persistent daily dollar ceiling, a per-request ceiling, and
+is disabled for high-risk requests. The OpenAI-compatible proxy records latency, reported usage
+cost, token counts, and execution failures automatically; correctness still comes only from
+`record_evaluation(...)`, never self-grading.
 
 The adaptive SQLite registry is explicit opt-in storage created only when `AdaptiveRouter` or
 `--adaptive-registry` is used. The regular `Router`, `route(...)`, and proxy command create no
