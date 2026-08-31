@@ -29,7 +29,7 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("--catalog", default="models.json")
     serve.add_argument(
         "--adaptive-registry",
-        help="optional customer-local SQLite path for encounter-driven model learning",
+        help="optional local SQLite path for encounter-driven model learning",
     )
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8080)

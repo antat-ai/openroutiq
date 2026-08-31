@@ -169,7 +169,7 @@ def _contains_secret(value: Any, *, path: str = "profile") -> str | None:
 
 @dataclass(frozen=True)
 class AdaptivePolicy:
-    """Safety and learning policy for opaque, customer-local model variants."""
+    """Safety and learning policy for opaque, locally managed model variants."""
 
     automatic_promotion: bool = False
     cold_start_quality: float = 50.0

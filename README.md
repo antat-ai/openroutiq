@@ -507,9 +507,9 @@ champion rollback, and keep state isolated wherever tenant telemetry cannot be s
 
 ### Private and future models: learn on encounter
 
-OpenRoutiQ does not need a global list of every model. `AdaptiveRouter` starts with any trusted models the customer already uses, then learns public, private, fine-tuned, on-premise, or future model variants when the application encounters them:
+OpenRoutiQ does not need a global list of every model. `AdaptiveRouter` starts with the trusted models you already use, then learns public, private, fine-tuned, on-premise, or future model variants as your application encounters them:
 
-For production, the customer must:
+For production, you must:
 
 1. Give every deployment and reasoning level a stable, unique model ID.
 2. Register its execution contract: provider/model handle, adapter style, endpoint, capabilities, context limit, initial latency, and input/output prices. No weights or source code are needed.
@@ -518,9 +518,9 @@ For production, the customer must:
 5. Send OpenRoutiQ a trustworthy end-to-end `quality_score` after execution. A successful HTTP response is not evidence of correctness.
 6. Keep tenant registries separate unless cross-tenant learning is explicitly authorized.
 
-The customer must adapt three things to its own system: the model contract, the executor that
+You must adapt three integration points to your system: the model contract, the executor that
 maps the selected stable ID to a real client, and the evaluator that turns the complete flow into
-a 0-100 task score. OpenRoutiQ deliberately cannot invent any of these for a closed model.
+a 0-100 task score. OpenRoutiQ deliberately cannot infer any of these for a closed model.
 For example:
 
 ```python
@@ -544,7 +544,7 @@ from openroutiq import AdaptiveRouter
 
 router = AdaptiveRouter.from_file(
     "models.json",
-    registry=".openroutiq/models.sqlite3",  # customer-local evidence
+    registry=".openroutiq/models.sqlite3",  # locally stored evidence
 )
 
 # Register the execution contract once. No weights, prompts, or provider secret are stored.

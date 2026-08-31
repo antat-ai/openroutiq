@@ -109,7 +109,7 @@ class AdaptiveRegistryTest(unittest.TestCase):
             )
             status = router.encounter_opaque(
                 model_id="private/legal-v7",
-                provider="customer-local",
+                provider="private-local",
                 model="legal-v7",
                 max_context_tokens=64_000,
                 capabilities=["text"],
