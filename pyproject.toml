@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==83.0.0"]
+requires = ["setuptools==84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -50,7 +50,7 @@ observability-grpc = [
 proxy = ["fastapi>=0.115", "uvicorn>=0.30", "litellm>=1.60"]
 benchmark-notdiamond = ["notdiamond"]
 benchmark-routellm = ["routellm[serve,eval]"]
-benchmark-xroutebench = ["datasets>=4,<5", "matplotlib>=3.9,<4"]
+benchmark-xroutebench = ["datasets>=4,<6", "matplotlib>=3.9,<4"]
 dev = [
   "build>=1.2",
   "matplotlib>=3.9,<4",
