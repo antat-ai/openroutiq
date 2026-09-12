@@ -4,6 +4,8 @@
 
 [Explore OpenRoutiQ's architecture and documentation on DeepWiki →](https://deepwiki.com/antat-ai/openroutiq)
 
+[Watch the OpenRoutiQ demo video →](https://app.arcade.software/share/videos/R8LFltgAEejPTfczTf18)
+
 ## Stop hardcoding models. Route every request to the one that should win.
 
 **OpenRoutiQ is an explainable, self-learning router for AI models.** It chooses the model,
