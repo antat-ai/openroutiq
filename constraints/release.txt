@@ -1,20 +1,20 @@
 # Direct dependencies resolved and audited for the OpenRoutiQ 0.1 release.
 # CI is configured to test this file on Python 3.11-3.13 and every supported OS.
-anthropic==1.1.0
-build==1.5.0
-fastapi==0.141.1
-litellm==1.98.0
-matplotlib==3.11.1
-mypy==2.3.1
+anthropic==2.3.0
+build==1.6.1
+fastapi==0.162.0
+litellm==1.106.6
+matplotlib==3.11.2
+mypy==2.4.1
 openai==2.54.0
-opentelemetry-api==1.44.0
-opentelemetry-exporter-otlp-proto-grpc==1.44.0
-opentelemetry-exporter-otlp-proto-http==1.44.0
-opentelemetry-sdk==1.44.0
-pip==26.2.1
+opentelemetry-api==1.45.1
+opentelemetry-exporter-otlp-proto-grpc==1.45.1
+opentelemetry-exporter-otlp-proto-http==1.45.1
+opentelemetry-sdk==1.45.1
+pip==26.2.2
 pip-audit==2.10.1
-pytest==9.1.1
-ruff==0.16.4
-setuptools==83.0.0
+pytest==9.2.0
+ruff==0.17.3
+setuptools==84.2.1
 twine==7.0.0
-uvicorn==0.52.4
+uvicorn==0.54.0
